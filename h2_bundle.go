@@ -54,8 +54,8 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
-	"github.com/useflyent/fhttp/http2/hpack"
-	"github.com/useflyent/fhttp/httptrace"
+	"github.com/PhilipJovanovic/fhttp/http2/hpack"
+	"github.com/PhilipJovanovic/fhttp/httptrace"
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/idna"
 )
