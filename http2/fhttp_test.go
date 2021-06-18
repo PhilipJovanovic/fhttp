@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/PhilipJovanovic/fhttp/cookiejar"
-	"github.com/PhilipJovanovic/fhttp/httptest"
+	"github.com/useflyent/fhttp/cookiejar"
+	"github.com/useflyent/fhttp/httptest"
 	"golang.org/x/net/publicsuffix"
 	"log"
 	"net/url"
 	"strings"
 	"testing"
 
-	http "github.com/PhilipJovanovic/fhttp"
-	"github.com/PhilipJovanovic/fhttp/http2"
-	"github.com/PhilipJovanovic/fhttp/httptrace"
+	http "github.com/useflyent/fhttp"
+	"github.com/useflyent/fhttp/http2"
+	"github.com/useflyent/fhttp/httptrace"
 )
 
 func TestHeaderOrder(t *testing.T) {

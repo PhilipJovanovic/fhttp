@@ -12,7 +12,7 @@ import (
 	"io"
 	"strings"
 
-	http "github.com/PhilipJovanovic/fhttp"
+	http "github.com/useflyent/fhttp"
 )
 
 // NewRequest returns a new incoming server Request, suitable
