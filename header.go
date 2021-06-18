@@ -5,6 +5,7 @@
 package http
 
 import (
+	"fmt"
 	"io"
 	"net/textproto"
 	"sort"
@@ -103,7 +104,7 @@ func (h Header) Write(w io.Writer) error {
 }
 
 func (h Header) write(w io.Writer, trace *httptrace.ClientTrace) error {
-	return h.writeSubset(w, nil, trace)
+	return h.writeSubset(w, nil, trace, nil)
 }
 
 // Clone returns a copy of h or nil if h is nil.
@@ -234,52 +235,54 @@ func (h Header) SortedKeyValuesBy(order map[string]int, exclude map[string]bool)
 // If exclude is not nil, keys where exclude[Key] == true are not written.
 // Keys are not canonicalized before checking the exclude map.
 func (h Header) WriteSubset(w io.Writer, exclude map[string]bool) error {
-	return h.writeSubset(w, exclude, nil)
+	return h.writeSubset(w, exclude, nil, nil)
 }
 
-func (h Header) writeSubset(w io.Writer, exclude map[string]bool, trace *httptrace.ClientTrace) error {
+func (h Header) writeSubset(w io.Writer, exclude map[string]bool, trace *httptrace.ClientTrace, headerOrder []string) error {
 	ws, ok := w.(io.StringWriter)
 	if !ok {
 		ws = stringWriter{w}
 	}
 
-	var kvs []HeaderKeyValues
-	var sorter *headerSorter
-	// Check if the HeaderOrder is defined.
-	if headerOrder, ok := h[HeaderOrderKey]; ok {
-		order := make(map[string]int)
-		for i, v := range headerOrder {
-			order[v] = i
-		}
-		if exclude == nil {
-			exclude = make(map[string]bool)
-		}
-		exclude[HeaderOrderKey] = true
-		kvs, sorter = h.SortedKeyValuesBy(order, exclude)
-	} else {
-		kvs, sorter = h.SortedKeyValues(exclude)
-	}
+	kvs, sorter := h.SortedKeyValues(exclude)
 
-	var formattedVals []string
-	for _, kv := range kvs {
-		for _, v := range kv.Values {
-			v = headerNewlineToSpace.Replace(v)
-			v = textproto.TrimString(v)
-			for _, s := range []string{kv.Key, ": ", v, "\r\n"} {
-				if _, err := ws.WriteString(s); err != nil {
-					headerSorterPool.Put(sorter)
-					return err
+	if headerOrder != nil {
+		for _, oHeader := range headerOrder {
+			for _, s := range kvs {
+				if strings.EqualFold(oHeader, s.Key) {
+					headerString := fmt.Sprintf("%s: %s\r\n", oHeader, strings.Join(s.Values, ""))
+
+					if _, err := ws.WriteString(headerString); err != nil {
+						headerSorterPool.Put(sorter)
+						return err
+					}
+					break
+				}
+			}
+		}
+	} else {
+		var formattedVals []string
+		for _, kv := range kvs {
+			for _, v := range kv.Values {
+				v = headerNewlineToSpace.Replace(v)
+				v = textproto.TrimString(v)
+				for _, s := range []string{kv.Key, ": ", v, "\r\n"} {
+					if _, err := ws.WriteString(s); err != nil {
+						headerSorterPool.Put(sorter)
+						return err
+					}
+				}
+				if trace != nil && trace.WroteHeaderField != nil {
+					formattedVals = append(formattedVals, v)
 				}
 			}
 			if trace != nil && trace.WroteHeaderField != nil {
-				formattedVals = append(formattedVals, v)
+				trace.WroteHeaderField(kv.Key, formattedVals)
+				formattedVals = nil
 			}
 		}
-		if trace != nil && trace.WroteHeaderField != nil {
-			trace.WroteHeaderField(kv.Key, formattedVals)
-			formattedVals = nil
-		}
 	}
+
 	headerSorterPool.Put(sorter)
 	return nil
 }

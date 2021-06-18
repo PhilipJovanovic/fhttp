@@ -87,8 +87,8 @@ func badStringError(what, val string) error { return fmt.Errorf("%s %q", what, v
 
 // Headers that Request.Write handles itself and should be skipped.
 var reqWriteExcludeHeader = map[string]bool{
-	"Host":              true, // not in Header map anyway
-	"User-Agent":        true,
+	"Host":              false, // not in Header map anyway
+	"User-Agent":        false,
 	"Content-Length":    true,
 	"Transfer-Encoding": true,
 	"Trailer":           true,
@@ -321,6 +321,9 @@ type Request struct {
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
 	ctx context.Context
+
+	// Header order array which is getting used by header.go later
+	HeaderOrder []string
 }
 
 // Context returns the request's context. To change the context, use
@@ -624,7 +627,7 @@ func (r *Request) write(w io.Writer, usingProxy bool, extraHeaders Header, waitF
 
 	// Use the defaultUserAgent unless the Header contains one, which
 	// may be blank to not send the header.
-	userAgent := defaultUserAgent
+	/* userAgent := defaultUserAgent
 	if r.Header.has("User-Agent") {
 		userAgent = r.Header.Get("User-Agent")
 	}
@@ -636,6 +639,10 @@ func (r *Request) write(w io.Writer, usingProxy bool, extraHeaders Header, waitF
 		if trace != nil && trace.WroteHeaderField != nil {
 			trace.WroteHeaderField("User-Agent", []string{userAgent})
 		}
+	} */
+
+	if r.Header.Get("User-Agent") == "" {
+		r.Header.Add("User-Agent", defaultUserAgent)
 	}
 
 	// Process Body,ContentLength,Close,Trailer
@@ -648,7 +655,7 @@ func (r *Request) write(w io.Writer, usingProxy bool, extraHeaders Header, waitF
 		return err
 	}
 
-	err = r.Header.writeSubset(w, reqWriteExcludeHeader, trace)
+	err = r.Header.writeSubset(w, reqWriteExcludeHeader, trace, r.HeaderOrder)
 	if err != nil {
 		return err
 	}
