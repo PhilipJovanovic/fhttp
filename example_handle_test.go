@@ -9,7 +9,7 @@ import (
 	"log"
 	"sync"
 
-	http "github.com/useflyent/fhttp"
+	http "github.com/PhilipJovanovic/fhttp"
 )
 
 type countHandler struct {

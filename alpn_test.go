@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/useflyent/fhttp"
-	"github.com/useflyent/fhttp/httptest"
+	. "github.com/PhilipJovanovic/fhttp"
+	"github.com/PhilipJovanovic/fhttp/httptest"
 )
 
 func TestNextProtoUpgrade(t *testing.T) {

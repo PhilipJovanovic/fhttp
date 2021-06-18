@@ -33,10 +33,10 @@ import (
 
 	"github.com/andybalholm/brotli"
 
-	http "github.com/useflyent/fhttp"
-	"github.com/useflyent/fhttp/httptrace"
+	http "github.com/PhilipJovanovic/fhttp"
+	"github.com/PhilipJovanovic/fhttp/httptrace"
 
-	"github.com/useflyent/fhttp/http2/hpack"
+	"github.com/PhilipJovanovic/fhttp/http2/hpack"
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/idna"
 )
