@@ -175,6 +175,9 @@ type headerSorter struct {
 func (s *headerSorter) Len() int      { return len(s.kvs) }
 func (s *headerSorter) Swap(i, j int) { s.kvs[i], s.kvs[j] = s.kvs[j], s.kvs[i] }
 func (s *headerSorter) Less(i, j int) bool {
+	// Testing
+	return false
+
 	// If the order isn't defined, sort lexicographically.
 	if s.order == nil {
 		return s.kvs[i].Key < s.kvs[j].Key
