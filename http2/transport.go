@@ -1701,6 +1701,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 			}
 
 			for _, v := range vv {
+				log.Printf("Set_Header: %+v %+v", k, v)
 				f(k, v)
 			}
 		}
