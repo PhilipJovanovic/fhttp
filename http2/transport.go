@@ -1644,10 +1644,12 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 				f(":scheme", req.URL.Scheme)
 			}
 		}
+
 		if trailers != "" {
 			f("trailer", trailers)
 		}
 
+		contentLengthSent := false
 		var didUA bool
 		if req.HeaderOrder != nil {
 			for _, oHeader := range req.HeaderOrder {
@@ -1658,8 +1660,13 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 							strings.EqualFold(k, "transfer-encoding") || strings.EqualFold(k, "upgrade") ||
 							strings.EqualFold(k, "keep-alive")) {
 
-						for _, v := range vv {
-							f(oHeader, v)
+						if strings.EqualFold(k, "content-length") {
+							contentLengthSent = true
+							f(k, strconv.FormatInt(contentLength, 10))
+						} else {
+							for _, v := range vv {
+								f(oHeader, v)
+							}
 						}
 					} else if strings.EqualFold(k, "user-agent") {
 						// Match Go's http1 behavior: at most one
@@ -1719,7 +1726,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 			}
 		}
 
-		if shouldSendReqContentLength(req.Method, contentLength) {
+		if !contentLengthSent && shouldSendReqContentLength(req.Method, contentLength) {
 			f("content-length", strconv.FormatInt(contentLength, 10))
 		}
 		if addGzipHeader {
