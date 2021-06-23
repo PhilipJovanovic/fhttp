@@ -1650,6 +1650,8 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 		}
 
 		contentLengthSent := false
+		shouldSendCL := shouldSendReqContentLength(req.Method, contentLength)
+
 		var didUA bool
 		if req.HeaderOrder != nil {
 			for _, oHeader := range req.HeaderOrder {
@@ -1659,7 +1661,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 							strings.EqualFold(k, "proxy-connection") || strings.EqualFold(k, "transfer-encoding") ||
 							strings.EqualFold(k, "upgrade") || strings.EqualFold(k, "keep-alive")) {
 
-						if strings.EqualFold(k, "content-length") && shouldSendReqContentLength(req.Method, contentLength) {
+						if strings.EqualFold(k, "content-length") && shouldSendCL {
 							contentLengthSent = true
 							f(k, strconv.FormatInt(contentLength, 10))
 						} else {
@@ -1725,7 +1727,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 			}
 		}
 
-		if !contentLengthSent && shouldSendReqContentLength(req.Method, contentLength) {
+		if !contentLengthSent && shouldSendCL {
 			f("content-length", strconv.FormatInt(contentLength, 10))
 		}
 		if addGzipHeader {
