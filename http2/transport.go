@@ -1659,7 +1659,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 							strings.EqualFold(k, "proxy-connection") || strings.EqualFold(k, "transfer-encoding") ||
 							strings.EqualFold(k, "upgrade") || strings.EqualFold(k, "keep-alive")) {
 
-						if strings.EqualFold(k, "content-length") {
+						if strings.EqualFold(k, "content-length") && shouldSendReqContentLength(req.Method, contentLength) {
 							contentLengthSent = true
 							f(k, strconv.FormatInt(contentLength, 10))
 						} else {
